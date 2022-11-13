@@ -8,7 +8,7 @@ const Textarea = styled.textarea`
   flex: 0 0 100%;
   height: 100px;
 `;
-const Home2: NextPage = ({ now }) => {
+const Home2: NextPage = ({ now }: any) => {
   const [jsonData, setJsonData] = React.useState("{}");
   const [isEditing, setIsEditing] = React.useState(false);
   const [distortions, setDistortions] = React.useState<DistortionItem[]>([]);
