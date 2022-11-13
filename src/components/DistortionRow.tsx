@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { DistortionItem, FACE_ANCHORS, TYPES } from "../../src/constants";
+import { DistortionItem, FACE_ANCHORS, TYPES } from "~/constants";
 
 const Row = styled.div`
   display: flex;

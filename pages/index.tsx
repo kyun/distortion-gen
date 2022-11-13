@@ -1,9 +1,10 @@
 import type { GetStaticProps, NextPage } from "next";
-import DistortionRow from "../src/components/DistortionRow";
+import DistortionRow from "~/components/DistortionRow";
 import React from "react";
-import { DistortionItem, INIT_DATA } from "../src/constants";
+import { INIT_DATA } from "~/constants";
 
 const Home: NextPage = ({ now }: any) => {
+  const [origin, setOrigin] = React.useState("{}");
   const [data, setData] = React.useState([INIT_DATA]);
 
   const outputStr = React.useMemo(() => {
@@ -38,20 +39,41 @@ const Home: NextPage = ({ now }: any) => {
     []
   );
 
+  React.useEffect(() => {
+    try {
+      const parsed = JSON.parse(origin);
+      if (parsed?.result?.items) {
+        const item = parsed.result.items.find(
+          (item: any) => item.drawType === "FACE_DISTORTION"
+        );
+        const { distortions } = JSON.parse(item?.customData);
+        setData(distortions);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }, [origin]);
+
   return (
     <div>
       <h1>
         Distortion Generator
         <span style={{ fontSize: 12 }}>{new Date(now).toLocaleString()}</span>
       </h1>
+      <div style={{ display: "flex" }}>
+        <textarea
+          style={{ flex: "0 0 100%", height: 100 }}
+          value={origin}
+          onChange={(e) => setOrigin(e.target.value)}
+        />
+        {/* <textarea style={{ flex: "0 0 50%", height: 100 }} value={outputStr} /> */}
+      </div>
+      <div></div>
       <div style={{ display: "flex", gap: 16, padding: "0 32px" }}>
         row: {data.length}
         <button style={{ marginLeft: 16 }} onClick={appendRow}>
           Add Row
         </button>
-      </div>
-      <div>
-        <textarea style={{ width: "100%", height: 100 }} value={outputStr} />
       </div>
       <div>
         {data.map((row, index) => (
