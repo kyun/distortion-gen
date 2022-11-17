@@ -2,6 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  experimental: {
+    appDir: true,
+  },
+  compiler: {
+    emotion: true,
+  },
   images: {
     unoptimized: true,
   },
