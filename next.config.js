@@ -5,9 +5,9 @@ const nextConfig = {
   experimental: {
     appDir: true,
   },
-  compiler: {
-    emotion: true,
-  },
+  // compiler: {
+  //   emotion: true,
+  // },
   images: {
     unoptimized: true,
   },
