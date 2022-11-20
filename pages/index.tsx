@@ -1,33 +1,63 @@
-import type { GetStaticProps, NextPage } from "next";
-import DistortionRow from "~/components/DistortionRow";
-import React from "react";
+import React, { useMemo } from "react";
+import type { NextPage } from "next";
+import Layout from "~/components/Layout";
+import { Select, Input, InputNumber, Button } from "antd";
+import DistortionItem from "~/components/DistortionItem";
+import DistortionItemHead from "~/components/DistortionItemHead";
 import { INIT_DATA } from "~/constants";
 
-const Home: NextPage = ({ now }: any) => {
-  const [origin, setOrigin] = React.useState("{}");
-  const [data, setData] = React.useState([INIT_DATA]);
+type Mode = "input" | "edit";
+const AntdPage: NextPage = () => {
+  const [jsonData, setJsonData] = React.useState("");
+  const [mode, setMode] = React.useState<Mode>("input");
+  const [rows, setRows] = React.useState<any[]>([]);
 
-  const outputStr = React.useMemo(() => {
-    const obj = {
-      distortions: data,
-    };
-    return `"${JSON.stringify(obj).replaceAll('"', '\\"')}"`;
-  }, [data]);
+  const outData = useMemo(() => {
+    try {
+      const parsed = JSON.parse(jsonData);
+      const index = parsed.result.items.findIndex(
+        (i: any) => i.drawType === "FACE_DISTORTION"
+      );
+      parsed.result.items[index].customData = JSON.stringify({
+        distortions: rows,
+      });
+      return JSON.stringify(parsed);
+    } catch {
+      return "";
+    }
+  }, [jsonData, rows]);
+  const customData = useMemo(() => {
+    try {
+      const { customData } = JSON.parse(jsonData)?.result?.items.find(
+        (i: any) => i.drawType === "FACE_DISTORTION"
+      );
+      return JSON.parse(customData);
+    } catch (e) {
+      return [];
+    }
+  }, [jsonData]);
+
+  const toggleMode = React.useCallback(() => {
+    if (outData.length === 0) return;
+
+    setMode((prev) => (prev === "input" ? "edit" : "input"));
+  }, [outData]);
 
   const appendRow = React.useCallback(() => {
-    setData((prev) => [...prev, INIT_DATA]);
-  }, []);
+    if (outData.length === 0) return;
+
+    setRows((prev) => [...prev, INIT_DATA]);
+  }, [outData]);
 
   const deleteRow = React.useCallback(
     (index: number) => () => {
-      setData((prev) => prev.filter((_, i) => i !== index));
+      setRows((prev) => prev.filter((_, i) => i !== index));
     },
     []
   );
-
-  const handleChange = React.useCallback(
-    (index: number) => (name: string, value: number | string) => {
-      setData((prev) => {
+  const updateRow = React.useCallback(
+    (index: number) => (name: string, value: any) => {
+      setRows((prev) => {
         const newData = [...prev];
         newData[index] = {
           ...newData[index],
@@ -39,63 +69,57 @@ const Home: NextPage = ({ now }: any) => {
     []
   );
 
+  const copyJson = React.useCallback(() => {
+    // clipboard copy
+    navigator.clipboard.writeText(outData);
+  }, [outData]);
+
+  const resetData = React.useCallback(() => {
+    setMode("input");
+    setJsonData("");
+    setRows([]);
+  }, []);
+
   React.useEffect(() => {
-    try {
-      const parsed = JSON.parse(origin);
-      if (parsed?.result?.items) {
-        const item = parsed.result.items.find(
-          (item: any) => item.drawType === "FACE_DISTORTION"
-        );
-        const { distortions } = JSON.parse(item?.customData);
-        setData(distortions);
-      }
-    } catch (err) {
-      console.log(err);
+    if (mode === "edit") {
+      setRows(customData.distortions);
     }
-  }, [origin]);
+  }, [mode, customData]);
 
   return (
-    <div>
-      <h1>
-        Distortion Generator
-        <span style={{ fontSize: 12 }}>{new Date(now).toLocaleString()}</span>
-      </h1>
-      <div style={{ display: "flex" }}>
-        <textarea
-          style={{ flex: "0 0 100%", height: 100 }}
-          value={origin}
-          onChange={(e) => setOrigin(e.target.value)}
-        />
-        {/* <textarea style={{ flex: "0 0 50%", height: 100 }} value={outputStr} /> */}
-      </div>
-      <div></div>
-      <div style={{ display: "flex", gap: 16, padding: "0 32px" }}>
-        row: {data.length}
-        <button style={{ marginLeft: 16 }} onClick={appendRow}>
-          Add Row
-        </button>
-      </div>
+    <Layout>
       <div>
-        {data.map((row, index) => (
-          <DistortionRow
-            key={index}
-            data={row}
-            onDelete={deleteRow(index)}
-            onChange={handleChange(index)}
-          />
-        ))}
+        <Input.TextArea
+          disabled={mode === "edit"}
+          style={{
+            fontSize: "0.8rem",
+            lineHeight: "0.9rem",
+          }}
+          size="small"
+          rows={8}
+          value={mode === "input" ? jsonData : outData}
+          onChange={(e) => setJsonData(e.target.value)}
+        />
       </div>
-    </div>
+      <div style={{ padding: 8 }}>
+        <Button onClick={toggleMode}>Generate Table</Button>
+        <Button onClick={appendRow}>Add Row</Button>
+        <Button onClick={copyJson}>Copy </Button>
+        <Button onClick={resetData}>Reset</Button>
+      </div>
+      <DistortionItemHead />
+      {rows?.map((r: any, index: number) => {
+        return (
+          <DistortionItem
+            data={r}
+            key={index}
+            onChange={updateRow(index)}
+            onDelete={deleteRow(index)}
+          />
+        );
+      })}
+    </Layout>
   );
 };
 
-export default Home;
-
-export const getStaticProps: GetStaticProps = async () => {
-  const now = Date.now();
-  return {
-    props: {
-      now,
-    },
-  };
-};
+export default AntdPage;

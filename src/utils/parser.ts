@@ -7,3 +7,10 @@ export const customDataParser = (str: string) => {
     return err.message;
   }
 };
+
+export const getCustomData = (str: string) => {
+  try {
+  } catch (err: any) {
+    //
+  }
+};
