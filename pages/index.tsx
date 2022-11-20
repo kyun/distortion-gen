@@ -101,7 +101,9 @@ const AntdPage: NextPage = () => {
           onChange={(e) => setJsonData(e.target.value)}
         />
       </div>
-      <div style={{ padding: 8 }}>
+      <div
+        style={{ display: "flex", gap: 16, marginTop: 16, marginBottom: 32 }}
+      >
         <Button onClick={toggleMode}>Generate Table</Button>
         <Button onClick={appendRow}>Add Row</Button>
         <Button onClick={copyJson}>Copy </Button>
