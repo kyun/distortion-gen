@@ -5,6 +5,7 @@ import { Select, Input, InputNumber, Button } from "antd";
 import DistortionItem from "~/components/DistortionItem";
 import DistortionItemHead from "~/components/DistortionItemHead";
 import { INIT_DATA } from "~/constants";
+import { myCustomData } from "~/utils/object";
 
 type Mode = "input" | "edit";
 const AntdPage: NextPage = () => {
@@ -85,6 +86,10 @@ const AntdPage: NextPage = () => {
       setRows(customData.distortions);
     }
   }, [mode, customData]);
+
+  React.useEffect(() => {
+    myCustomData(jsonData);
+  }, [jsonData]);
 
   return (
     <Layout>
