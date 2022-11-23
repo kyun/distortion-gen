@@ -25,6 +25,9 @@ interface Props {
 const DistortionItemHead: React.FC<Props> = ({ data }) => {
   return (
     <Row>
+      <Box style={{ flexBasis: "40px" }}>
+        <Text style={{ paddingLeft: 0 }}>Index</Text>
+      </Box>
       <Box>
         <Text>Type</Text>
       </Box>
