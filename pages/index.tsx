@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import type { NextPage } from "next";
 import Layout from "~/components/Layout";
-import { Select, Input, InputNumber, Button } from "antd";
+import { Input, Button, message } from "antd";
 import DistortionItem from "~/components/DistortionItem";
 import DistortionItemHead from "~/components/DistortionItemHead";
 import { INIT_DATA } from "~/constants";
@@ -12,7 +12,7 @@ const AntdPage: NextPage = ({ now }: any) => {
   const [jsonData, setJsonData] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("input");
   const [rows, setRows] = React.useState<any[]>([]);
-
+  const [lastIndex, setLastIndex] = React.useState(-1);
   const outData = useMemo(() => {
     try {
       const parsed = JSON.parse(jsonData);
@@ -46,18 +46,37 @@ const AntdPage: NextPage = ({ now }: any) => {
 
   const appendRow = React.useCallback(() => {
     if (outData.length === 0) return;
+    message.success("Row added!");
 
     setRows((prev) => [...prev, INIT_DATA]);
   }, [outData]);
 
   const deleteRow = React.useCallback(
     (index: number) => () => {
+      message.warning("Row removed!");
+
       setRows((prev) => prev.filter((_, i) => i !== index));
+      setLastIndex(index);
+    },
+    []
+  );
+
+  const copyRow = React.useCallback(
+    (index: number) => () => {
+      message.info("Row copied & added!");
+
+      setLastIndex(index);
+      setRows((prev) => {
+        const copied = [...prev];
+        copied.splice(index, 0, prev[index]);
+        return [...copied];
+      });
     },
     []
   );
   const updateRow = React.useCallback(
     (index: number) => (name: string, value: any) => {
+      setLastIndex(index);
       setRows((prev) => {
         const newData = [...prev];
         newData[index] = {
@@ -70,15 +89,26 @@ const AntdPage: NextPage = ({ now }: any) => {
     []
   );
 
+  const setIndex = React.useCallback(
+    (index: number) => () => {
+      setLastIndex(index);
+    },
+    []
+  );
+
   const copyJson = React.useCallback(() => {
     // clipboard copy
     navigator.clipboard.writeText(outData);
+    message.success("Copied!");
   }, [outData]);
 
   const resetData = React.useCallback(() => {
-    setMode("input");
-    setJsonData("");
-    setRows([]);
+    const sure = confirm("Are you sure?");
+    if (sure) {
+      setMode("input");
+      setJsonData("");
+      setRows([]);
+    }
   }, []);
 
   React.useEffect(() => {
@@ -110,22 +140,37 @@ const AntdPage: NextPage = ({ now }: any) => {
       <div
         style={{ display: "flex", gap: 16, marginTop: 16, marginBottom: 32 }}
       >
-        <Button onClick={toggleMode}>Generate Table</Button>
-        <Button onClick={appendRow}>Add Row</Button>
-        <Button onClick={copyJson}>Copy </Button>
-        <Button onClick={resetData}>Reset</Button>
+        <Button type="primary" onClick={toggleMode}>
+          JSON to Table
+        </Button>
+
+        <Button onClick={copyJson}>Copy JSON </Button>
+        <Button danger onClick={resetData}>
+          Reset
+        </Button>
+        <Button disabled>Undo (Soon)</Button>
       </div>
-      <DistortionItemHead />
-      {rows?.map((r: any, index: number) => {
-        return (
-          <DistortionItem
-            data={r}
-            key={index}
-            onChange={updateRow(index)}
-            onDelete={deleteRow(index)}
-          />
-        );
-      })}
+      <hr style={{ borderColor: "#e0e0e0", borderTop: 0, marginBottom: 32 }} />
+      <div style={{ marginBottom: 32 }}>
+        <Button onClick={appendRow}>Add Row</Button>
+      </div>
+      <div style={{ paddingLeft: 6 }}>
+        <DistortionItemHead />
+        {rows?.map((r: any, index: number) => {
+          return (
+            <DistortionItem
+              onClick={setIndex(index)}
+              lastUpdated={lastIndex === index}
+              data={r}
+              index={index}
+              key={index}
+              onChange={updateRow(index)}
+              onDelete={deleteRow(index)}
+              onCopy={copyRow(index)}
+            />
+          );
+        })}
+      </div>
     </Layout>
   );
 };
