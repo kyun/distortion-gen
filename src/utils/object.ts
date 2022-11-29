@@ -14,7 +14,9 @@ export const getCustomData = (obj: any) => {
 
 export const myCustomData = (str: string) => {
   try {
+    console.log(str);
     const parsed = JSON.parse(str);
+    console.log(parsed);
   } catch (err: unknown) {
     if (err instanceof Error) {
       console.error(err);

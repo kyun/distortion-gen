@@ -8,7 +8,7 @@ import { INIT_DATA } from "~/constants";
 import { myCustomData } from "~/utils/object";
 
 type Mode = "input" | "edit";
-const AntdPage: NextPage = () => {
+const AntdPage: NextPage = ({ now }: any) => {
   const [jsonData, setJsonData] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("input");
   const [rows, setRows] = React.useState<any[]>([]);
@@ -93,6 +93,7 @@ const AntdPage: NextPage = () => {
 
   return (
     <Layout>
+      <p>Last Deployed At {new Date(now).toLocaleString()}</p>
       <div>
         <Input.TextArea
           disabled={mode === "edit"}
@@ -130,3 +131,12 @@ const AntdPage: NextPage = () => {
 };
 
 export default AntdPage;
+
+export const getStaticProps = async () => {
+  const now = Date.now();
+  return {
+    props: {
+      now,
+    },
+  };
+};
